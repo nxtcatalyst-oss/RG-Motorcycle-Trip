@@ -23,7 +23,7 @@ http://localhost:5173
 - Budget tracker with per-person actual cost estimate
 - Packing, bike, and document checklists
 - Shared planning notes
-- Local browser storage
+- Supabase shared storage with local browser backup
 - JSON export and import for backups or moving data between machines
 
 ## Fast GitHub Pages deployment
@@ -35,7 +35,7 @@ http://localhost:5173
 5. Choose the `main` branch and `/root`.
 6. Save. GitHub will give you a public web URL.
 
-This first version stores data in each browser's local storage. For group live collaboration, the next step is adding a small hosted database such as Supabase or Firebase.
+This version stores a local browser backup and syncs the shared trip plan through Supabase when the schema is installed.
 
 ## Shared data roadmap
 
@@ -47,17 +47,19 @@ Project URL:
 https://oipqywiuptslfvhnjovn.supabase.co
 ```
 
-Create a `.env` file from `.env.example` when the app moves to a build step or hosted environment:
+Create a `.env` file from `.env.example` if the app later moves to a build step or hosted environment:
 
 ```bash
 cp .env.example .env
 ```
 
-Never commit `.env`. The current static MVP does not read these values yet; this file is here so the Supabase migration has a clean place to start.
+Never commit `.env`. The current static app reads `config.js` directly so it can run on GitHub Pages without a build step.
 
-For a static GitHub Pages deployment, copy `config.example.js` to `config.js`, add the Supabase anon/public key, and do not commit `config.js` until you are intentionally ready for the deployed frontend to use that public key.
+For the current static GitHub Pages deployment, `config.js` contains the Supabase URL and publishable key. That key is intended for browser use; protect data access with Supabase row level security policies.
 
-Run `supabase/schema.sql` in the Supabase SQL editor to create the first shared-data tables.
+Run `supabase/schema.sql` in the Supabase SQL editor before expecting shared sync to work. Until then, the app will continue saving locally.
+
+The app currently syncs the working trip plan through `trip_documents`, a single JSON document table. The normalized tables below are included for the next data-model pass after the trip planning workflow stabilizes.
 
 Suggested first tables:
 

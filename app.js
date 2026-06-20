@@ -1,4 +1,11 @@
 const STORAGE_KEY = "rideplan.v1";
+const config = window.RIDEPLAN_CONFIG || {};
+const tripSlug = config.tripSlug || "summer-2026";
+
+let supabaseClient = null;
+let remoteReady = false;
+let saveTimer = null;
+let lastRemoteJson = "";
 
 const categories = ["fuel", "lodging", "food", "attractions", "repairs", "tolls", "parking", "misc"];
 const stopCategories = ["hotel", "restaurant", "fuel", "attraction", "repair", "emergency", "other"];
@@ -153,7 +160,110 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  saveStatus.textContent = "Saved locally";
+  if (!remoteReady) {
+    saveStatus.textContent = "Saved locally";
+    return;
+  }
+  saveStatus.textContent = "Saving to Supabase...";
+  scheduleRemoteSave();
+}
+
+function cleanState(data) {
+  return {
+    ...structuredClone(sampleData),
+    ...(data || {}),
+    trip: { ...structuredClone(sampleData.trip), ...(data?.trip || {}) },
+    routeDays: Array.isArray(data?.routeDays) ? data.routeDays : structuredClone(sampleData.routeDays),
+    stops: Array.isArray(data?.stops) ? data.stops : structuredClone(sampleData.stops),
+    bikes: Array.isArray(data?.bikes) ? data.bikes : structuredClone(sampleData.bikes),
+    fuelLogs: Array.isArray(data?.fuelLogs) ? data.fuelLogs : structuredClone(sampleData.fuelLogs),
+    expenses: Array.isArray(data?.expenses) ? data.expenses : structuredClone(sampleData.expenses),
+    checklist: Array.isArray(data?.checklist) ? data.checklist : structuredClone(sampleData.checklist),
+    notes: typeof data?.notes === "string" ? data.notes : sampleData.notes,
+  };
+}
+
+function scheduleRemoteSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveRemoteState();
+  }, 500);
+}
+
+async function saveRemoteState() {
+  if (!supabaseClient) return;
+  const data = cleanState(state);
+  const nextJson = JSON.stringify(data);
+  if (nextJson === lastRemoteJson) {
+    saveStatus.textContent = "Synced with Supabase";
+    return;
+  }
+
+  const { error } = await supabaseClient.from("trip_documents").upsert(
+    {
+      slug: tripSlug,
+      data,
+    },
+    { onConflict: "slug" },
+  );
+
+  if (error) {
+    console.error(error);
+    saveStatus.textContent = "Saved locally; Supabase needs setup";
+    return;
+  }
+
+  lastRemoteJson = nextJson;
+  saveStatus.textContent = "Synced with Supabase";
+}
+
+async function initSupabase() {
+  if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase) {
+    saveStatus.textContent = "Saved locally";
+    return;
+  }
+
+  saveStatus.textContent = "Connecting to Supabase...";
+  supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
+  const { data, error } = await supabaseClient.from("trip_documents").select("data").eq("slug", tripSlug).maybeSingle();
+
+  if (error) {
+    console.error(error);
+    saveStatus.textContent = "Saved locally; run Supabase schema";
+    return;
+  }
+
+  remoteReady = true;
+
+  if (data?.data) {
+    state = cleanState(data.data);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    lastRemoteJson = JSON.stringify(cleanState(state));
+    render();
+    saveStatus.textContent = "Loaded from Supabase";
+  } else {
+    await saveRemoteState();
+  }
+
+  supabaseClient
+    .channel("rideplan-trip-document")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "trip_documents", filter: `slug=eq.${tripSlug}` },
+      (payload) => {
+        if (!payload.new?.data) return;
+        const incoming = cleanState(payload.new.data);
+        const incomingJson = JSON.stringify(incoming);
+        if (incomingJson === lastRemoteJson) return;
+        state = incoming;
+        lastRemoteJson = incomingJson;
+        localStorage.setItem(STORAGE_KEY, incomingJson);
+        render();
+        saveStatus.textContent = "Updated from Supabase";
+      },
+    )
+    .subscribe();
 }
 
 function money(value) {
@@ -509,3 +619,4 @@ document.querySelector("#resetSample").addEventListener("click", () => {
 });
 
 render();
+initSupabase();

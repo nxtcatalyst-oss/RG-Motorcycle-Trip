@@ -1,5 +1,12 @@
 create extension if not exists pgcrypto;
 
+create table if not exists public.trip_documents (
+  slug text primary key,
+  data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.trips (
   id uuid primary key default gen_random_uuid(),
   name text not null default 'Summer Motorcycle Trip',
@@ -152,6 +159,12 @@ create trigger touch_notes_updated_at
 before update on public.notes
 for each row execute function public.touch_updated_at();
 
+drop trigger if exists touch_trip_documents_updated_at on public.trip_documents;
+create trigger touch_trip_documents_updated_at
+before update on public.trip_documents
+for each row execute function public.touch_updated_at();
+
+alter table public.trip_documents enable row level security;
 alter table public.trips enable row level security;
 alter table public.route_days enable row level security;
 alter table public.stops enable row level security;
@@ -160,6 +173,12 @@ alter table public.fuel_logs enable row level security;
 alter table public.expenses enable row level security;
 alter table public.checklist_items enable row level security;
 alter table public.notes enable row level security;
+
+drop policy if exists "Public trip document planning access" on public.trip_documents;
+create policy "Public trip document planning access"
+on public.trip_documents for all
+using (true)
+with check (true);
 
 drop policy if exists "Public trip planning access" on public.trips;
 create policy "Public trip planning access"
