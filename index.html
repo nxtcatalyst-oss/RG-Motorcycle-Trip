@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RidePlan</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">RP</div>
+          <div>
+            <h1>RidePlan</h1>
+            <p>Motorcycle trip command center</p>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="Planner sections">
+          <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
+          <button class="nav-tab" data-view="route" type="button">Route</button>
+          <button class="nav-tab" data-view="stops" type="button">Stops</button>
+          <button class="nav-tab" data-view="fuel" type="button">Fuel</button>
+          <button class="nav-tab" data-view="budget" type="button">Budget</button>
+          <button class="nav-tab" data-view="checklists" type="button">Checklists</button>
+          <button class="nav-tab" data-view="notes" type="button">Notes</button>
+        </nav>
+
+        <div class="sidebar-actions">
+          <button id="exportData" class="secondary-btn" type="button">Export backup</button>
+          <label class="secondary-btn import-label" for="importData">Import backup</label>
+          <input id="importData" type="file" accept="application/json" />
+          <button id="resetSample" class="ghost-btn" type="button">Reset sample data</button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Summer planning workspace</p>
+            <h2 id="pageTitle">Dashboard</h2>
+          </div>
+          <div class="save-status" id="saveStatus">Saved locally</div>
+        </header>
+
+        <section id="dashboard" class="view active-view" aria-labelledby="dashboard-title">
+          <div class="dashboard-grid">
+            <section class="panel trip-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Trip profile</p>
+                  <h3 id="dashboard-title">The ride at a glance</h3>
+                </div>
+              </div>
+              <form id="tripForm" class="form-grid"></form>
+            </section>
+
+            <section class="metric-grid" aria-label="Trip metrics">
+              <div class="metric">
+                <span>Total miles</span>
+                <strong id="metricMiles">0</strong>
+              </div>
+              <div class="metric">
+                <span>Ride hours</span>
+                <strong id="metricHours">0</strong>
+              </div>
+              <div class="metric">
+                <span>Estimated cost</span>
+                <strong id="metricEstimated">$0</strong>
+              </div>
+              <div class="metric">
+                <span>Actual spend</span>
+                <strong id="metricActual">$0</strong>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Today-level planning</p>
+                <h3>Daily route summary</h3>
+              </div>
+            </div>
+            <div id="dashboardRoute" class="route-summary"></div>
+          </section>
+        </section>
+
+        <section id="route" class="view" aria-labelledby="route-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Daily legs</p>
+              <h3 id="route-title">Route planner</h3>
+            </div>
+            <button id="addRouteDay" class="primary-btn" type="button">Add day</button>
+          </div>
+          <div id="routeList" class="stack"></div>
+        </section>
+
+        <section id="stops" class="view" aria-labelledby="stops-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Hotels, food, fuel, attractions</p>
+              <h3 id="stops-title">Stops database</h3>
+            </div>
+            <button id="addStop" class="primary-btn" type="button">Add stop</button>
+          </div>
+          <div class="filter-row">
+            <select id="stopCategoryFilter" aria-label="Filter stops by category">
+              <option value="all">All categories</option>
+              <option value="hotel">Hotels</option>
+              <option value="restaurant">Restaurants</option>
+              <option value="fuel">Fuel stations</option>
+              <option value="attraction">Attractions</option>
+              <option value="repair">Repair</option>
+              <option value="emergency">Emergency</option>
+              <option value="other">Other</option>
+            </select>
+            <input id="stopSearch" type="search" placeholder="Search stops, towns, notes" />
+          </div>
+          <div id="stopsList" class="card-grid"></div>
+        </section>
+
+        <section id="fuel" class="view" aria-labelledby="fuel-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Range and actuals</p>
+              <h3 id="fuel-title">Fuel planner</h3>
+            </div>
+            <button id="addFuelLog" class="primary-btn" type="button">Add fuel log</button>
+          </div>
+          <div class="split-layout">
+            <section class="panel">
+              <div class="panel-header">
+                <h3>Bike ranges</h3>
+                <button id="addBike" class="secondary-btn" type="button">Add bike</button>
+              </div>
+              <div id="bikeList" class="stack compact"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-header">
+                <h3>Fuel spend</h3>
+              </div>
+              <div class="metric-grid tight">
+                <div class="metric">
+                  <span>Gallons</span>
+                  <strong id="metricGallons">0</strong>
+                </div>
+                <div class="metric">
+                  <span>Fuel total</span>
+                  <strong id="metricFuelTotal">$0</strong>
+                </div>
+              </div>
+              <div id="fuelLogs" class="stack compact"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="budget" class="view" aria-labelledby="budget-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Estimated versus actual</p>
+              <h3 id="budget-title">Budget tracker</h3>
+            </div>
+            <button id="addExpense" class="primary-btn" type="button">Add expense</button>
+          </div>
+          <div id="budgetSummary" class="budget-summary"></div>
+          <div id="expenseList" class="stack"></div>
+        </section>
+
+        <section id="checklists" class="view" aria-labelledby="checklists-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Pre-ride readiness</p>
+              <h3 id="checklists-title">Checklists</h3>
+            </div>
+            <button id="addChecklistItem" class="primary-btn" type="button">Add item</button>
+          </div>
+          <div id="checklistBoard" class="checklist-board"></div>
+        </section>
+
+        <section id="notes" class="view" aria-labelledby="notes-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Decisions and loose ends</p>
+              <h3 id="notes-title">Shared notes</h3>
+            </div>
+          </div>
+          <textarea id="notesField" class="notes-field" spellcheck="true"></textarea>
+        </section>
+      </main>
+    </div>
+
+    <template id="routeTemplate">
+      <article class="record-card route-card">
+        <div class="record-actions">
+          <span class="pill route-day-label"></span>
+          <button class="icon-btn delete-route" type="button" aria-label="Delete route day">Delete</button>
+        </div>
+        <div class="record-grid">
+          <label>Day title<input data-field="title" type="text" /></label>
+          <label>Date<input data-field="date" type="date" /></label>
+          <label>Start<input data-field="start" type="text" /></label>
+          <label>End<input data-field="end" type="text" /></label>
+          <label>Miles<input data-field="miles" type="number" min="0" /></label>
+          <label>Ride hours<input data-field="hours" type="number" min="0" step="0.25" /></label>
+          <label class="full-span">Road notes<textarea data-field="notes"></textarea></label>
+        </div>
+      </article>
+    </template>
+
+    <template id="stopTemplate">
+      <article class="record-card stop-card">
+        <div class="record-actions">
+          <span class="pill stop-category"></span>
+          <button class="icon-btn delete-stop" type="button" aria-label="Delete stop">Delete</button>
+        </div>
+        <div class="record-grid">
+          <label>Name<input data-field="name" type="text" /></label>
+          <label>Category<select data-field="category"></select></label>
+          <label>Area or town<input data-field="area" type="text" /></label>
+          <label>Route day<input data-field="day" type="number" min="1" /></label>
+          <label>Priority<select data-field="priority"></select></label>
+          <label>Status<select data-field="status"></select></label>
+          <label>Estimated cost<input data-field="estimatedCost" type="number" min="0" step="0.01" /></label>
+          <label>Link<input data-field="link" type="url" /></label>
+          <label class="full-span">Notes<textarea data-field="notes"></textarea></label>
+        </div>
+      </article>
+    </template>
+
+    <template id="bikeTemplate">
+      <article class="record-card mini-card">
+        <div class="record-actions">
+          <span class="pill">Bike</span>
+          <button class="icon-btn delete-bike" type="button" aria-label="Delete bike">Delete</button>
+        </div>
+        <div class="record-grid two">
+          <label>Rider<input data-field="rider" type="text" /></label>
+          <label>Bike<input data-field="bike" type="text" /></label>
+          <label>Tank gallons<input data-field="tankGallons" type="number" min="0" step="0.1" /></label>
+          <label>MPG<input data-field="mpg" type="number" min="0" step="0.1" /></label>
+        </div>
+      </article>
+    </template>
+
+    <template id="fuelTemplate">
+      <article class="record-card mini-card">
+        <div class="record-actions">
+          <span class="pill fuel-rider"></span>
+          <button class="icon-btn delete-fuel" type="button" aria-label="Delete fuel log">Delete</button>
+        </div>
+        <div class="record-grid two">
+          <label>Date<input data-field="date" type="date" /></label>
+          <label>Rider<input data-field="rider" type="text" /></label>
+          <label>Location<input data-field="location" type="text" /></label>
+          <label>Gallons<input data-field="gallons" type="number" min="0" step="0.001" /></label>
+          <label>Price/gallon<input data-field="pricePerGallon" type="number" min="0" step="0.001" /></label>
+          <label>Odometer<input data-field="odometer" type="number" min="0" /></label>
+        </div>
+      </article>
+    </template>
+
+    <template id="expenseTemplate">
+      <article class="record-card expense-card">
+        <div class="record-actions">
+          <span class="pill expense-category"></span>
+          <button class="icon-btn delete-expense" type="button" aria-label="Delete expense">Delete</button>
+        </div>
+        <div class="record-grid">
+          <label>Description<input data-field="description" type="text" /></label>
+          <label>Category<select data-field="category"></select></label>
+          <label>Estimate<input data-field="estimated" type="number" min="0" step="0.01" /></label>
+          <label>Actual<input data-field="actual" type="number" min="0" step="0.01" /></label>
+          <label>Paid by<input data-field="paidBy" type="text" /></label>
+          <label>Split<select data-field="split"></select></label>
+          <label class="full-span">Notes<textarea data-field="notes"></textarea></label>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
