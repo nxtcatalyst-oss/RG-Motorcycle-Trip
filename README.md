@@ -41,6 +41,12 @@ This first version stores data in each browser's local storage. For group live c
 
 Supabase is the recommended next step for sharing the same trip plan across all four riders.
 
+Project URL:
+
+```text
+https://oipqywiuptslfvhnjovn.supabase.co
+```
+
 Create a `.env` file from `.env.example` when the app moves to a build step or hosted environment:
 
 ```bash
@@ -48,6 +54,10 @@ cp .env.example .env
 ```
 
 Never commit `.env`. The current static MVP does not read these values yet; this file is here so the Supabase migration has a clean place to start.
+
+For a static GitHub Pages deployment, copy `config.example.js` to `config.js`, add the Supabase anon/public key, and do not commit `config.js` until you are intentionally ready for the deployed frontend to use that public key.
+
+Run `supabase/schema.sql` in the Supabase SQL editor to create the first shared-data tables.
 
 Suggested first tables:
 
