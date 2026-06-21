@@ -20,6 +20,7 @@
         <nav class="nav-tabs" aria-label="Planner sections">
           <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
           <button class="nav-tab" data-view="route" type="button">Route</button>
+          <button class="nav-tab" data-view="locations" type="button">Locations</button>
           <button class="nav-tab" data-view="stops" type="button">Stops</button>
           <button class="nav-tab" data-view="fuel" type="button">Fuel</button>
           <button class="nav-tab" data-view="budget" type="button">Budget</button>
@@ -96,6 +97,17 @@
             <button id="addRouteDay" class="primary-btn" type="button">Add day</button>
           </div>
           <div id="routeList" class="stack"></div>
+        </section>
+
+        <section id="locations" class="view" aria-labelledby="locations-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Towns, regions, overnight bases</p>
+              <h3 id="locations-title">Locations</h3>
+            </div>
+            <button id="addLocation" class="primary-btn" type="button">Add location</button>
+          </div>
+          <div id="locationsList" class="card-grid"></div>
         </section>
 
         <section id="stops" class="view" aria-labelledby="stops-title">
@@ -226,6 +238,25 @@
           <label>Estimated cost<input data-field="estimatedCost" type="number" min="0" step="0.01" /></label>
           <label>Link<input data-field="link" type="url" /></label>
           <label class="full-span">Notes<textarea data-field="notes"></textarea></label>
+        </div>
+      </article>
+    </template>
+
+    <template id="locationTemplate">
+      <article class="record-card location-card">
+        <div class="record-actions">
+          <span class="pill location-type"></span>
+          <button class="icon-btn delete-location" type="button" aria-label="Delete location">Delete</button>
+        </div>
+        <div class="record-grid">
+          <label>Name<input data-field="name" type="text" /></label>
+          <label>Type<select data-field="type"></select></label>
+          <label>Region or state<input data-field="region" type="text" /></label>
+          <label>Route day<input data-field="day" type="number" min="1" /></label>
+          <label>Arrive<input data-field="arrive" type="date" /></label>
+          <label>Depart<input data-field="depart" type="date" /></label>
+          <label class="full-span">Why this place<textarea data-field="reason"></textarea></label>
+          <label class="full-span">Planning notes<textarea data-field="notes"></textarea></label>
         </div>
       </article>
     </template>

@@ -9,6 +9,7 @@ let lastRemoteJson = "";
 
 const categories = ["fuel", "lodging", "food", "attractions", "repairs", "tolls", "parking", "misc"];
 const stopCategories = ["hotel", "restaurant", "fuel", "attraction", "repair", "emergency", "other"];
+const locationTypes = ["overnight", "fuel area", "meal town", "scenic area", "meet-up", "backup", "other"];
 const priorities = ["must-see", "good option", "backup", "skip if tired"];
 const statuses = ["considering", "planned", "booked", "paid", "done", "skipped"];
 const checklistGroups = ["Packing", "Bike", "Documents"];
@@ -42,6 +43,30 @@ const sampleData = {
       miles: 265,
       hours: 6,
       notes: "Prefer scenic roads. Avoid long gravel sections unless confirmed manageable.",
+    },
+  ],
+  locations: [
+    {
+      id: crypto.randomUUID(),
+      name: "Friends' town",
+      type: "meet-up",
+      region: "",
+      day: 1,
+      arrive: "2026-07-10",
+      depart: "2026-07-11",
+      reason: "Meet up with the group and finalize route decisions.",
+      notes: "Use this as the starting planning base for the full ride.",
+    },
+    {
+      id: crypto.randomUUID(),
+      name: "Lake stopover",
+      type: "overnight",
+      region: "",
+      day: 2,
+      arrive: "2026-07-11",
+      depart: "2026-07-12",
+      reason: "Good overnight candidate after the scenic mountain loop.",
+      notes: "Research hotels with secure motorcycle parking and walkable dinner options.",
     },
   ],
   stops: [
@@ -174,6 +199,7 @@ function cleanState(data) {
     ...(data || {}),
     trip: { ...structuredClone(sampleData.trip), ...(data?.trip || {}) },
     routeDays: Array.isArray(data?.routeDays) ? data.routeDays : structuredClone(sampleData.routeDays),
+    locations: Array.isArray(data?.locations) ? data.locations : structuredClone(sampleData.locations),
     stops: Array.isArray(data?.stops) ? data.stops : structuredClone(sampleData.stops),
     bikes: Array.isArray(data?.bikes) ? data.bikes : structuredClone(sampleData.bikes),
     fuelLogs: Array.isArray(data?.fuelLogs) ? data.fuelLogs : structuredClone(sampleData.fuelLogs),
@@ -365,6 +391,25 @@ function renderRoute() {
   });
 }
 
+function renderLocations() {
+  const list = document.querySelector("#locationsList");
+  const template = document.querySelector("#locationTemplate");
+  list.innerHTML = "";
+  state.locations.forEach((location) => {
+    const node = template.content.cloneNode(true);
+    const card = node.querySelector(".location-card");
+    card.querySelector(".location-type").textContent = location.type || "location";
+    card.querySelector('[data-field="type"]').innerHTML = optionList(locationTypes, location.type);
+    ["name", "type", "region", "day", "arrive", "depart", "reason", "notes"].forEach((field) => bindInput(card, location, field, render));
+    card.querySelector(".delete-location").addEventListener("click", () => {
+      state.locations = state.locations.filter((item) => item.id !== location.id);
+      saveState();
+      render();
+    });
+    list.append(node);
+  });
+}
+
 function renderStops() {
   const list = document.querySelector("#stopsList");
   const template = document.querySelector("#stopTemplate");
@@ -528,6 +573,7 @@ function render() {
   renderMetrics();
   renderDashboardRoute();
   renderRoute();
+  renderLocations();
   renderStops();
   renderFuel();
   renderBudget();
@@ -556,6 +602,22 @@ document.querySelector("#addStop").addEventListener("click", () => {
     status: "considering",
     estimatedCost: 0,
     link: "",
+    notes: "",
+  });
+  saveState();
+  render();
+});
+
+document.querySelector("#addLocation").addEventListener("click", () => {
+  state.locations.push({
+    id: crypto.randomUUID(),
+    name: "New location",
+    type: "other",
+    region: "",
+    day: 1,
+    arrive: "",
+    depart: "",
+    reason: "",
     notes: "",
   });
   saveState();
