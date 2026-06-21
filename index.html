@@ -237,20 +237,33 @@
     </template>
 
     <template id="locationTemplate">
-      <article class="record-card location-card">
-        <div class="record-actions">
-          <span class="pill location-type"></span>
-          <button class="icon-btn delete-location" type="button" aria-label="Delete location">Delete</button>
+      <article class="record-card location-card location-panel">
+        <div class="location-summary">
+          <button class="location-toggle" type="button" aria-expanded="false">
+            <span class="location-name"></span>
+            <span class="location-meta"></span>
+          </button>
+          <div class="location-actions">
+            <span class="pill location-type"></span>
+            <button class="icon-btn delete-location" type="button" aria-label="Delete location">Delete</button>
+          </div>
         </div>
-        <div class="record-grid">
-          <label>Name<input data-field="name" type="text" /></label>
-          <label>Type<select data-field="type"></select></label>
-          <label>Region or state<input data-field="region" type="text" /></label>
-          <label>Route day<input data-field="day" type="number" min="1" /></label>
-          <label>Arrive<input data-field="arrive" type="date" /></label>
-          <label>Depart<input data-field="depart" type="date" /></label>
-          <label class="full-span">Why this place<textarea data-field="reason"></textarea></label>
-          <label class="full-span">Planning notes<textarea data-field="notes"></textarea></label>
+        <div class="location-body" hidden>
+          <div class="record-grid location-edit-grid">
+            <label>Name<input data-field="name" type="text" /></label>
+            <label>Type<select data-field="type"></select></label>
+            <label>Region or state<input data-field="region" type="text" /></label>
+            <label>Route day<input data-field="day" type="number" min="1" /></label>
+            <label>Arrive<input data-field="arrive" type="date" /></label>
+            <label>Depart<input data-field="depart" type="date" /></label>
+            <label class="full-span">Why this place<textarea data-field="reason"></textarea></label>
+            <label class="full-span">Planning notes<textarea data-field="notes"></textarea></label>
+          </div>
+          <div class="location-attraction-head">
+            <h4>Attractions</h4>
+            <span class="location-attraction-count"></span>
+          </div>
+          <div class="location-attractions"></div>
         </div>
       </article>
     </template>

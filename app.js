@@ -6,6 +6,7 @@ let supabaseClient = null;
 let remoteReady = false;
 let saveTimer = null;
 let lastRemoteJson = "";
+const expandedLocations = new Set();
 
 const categories = ["fuel", "lodging", "food", "attractions", "repairs", "tolls", "parking", "misc"];
 const stopCategories = ["hotel", "restaurant", "fuel", "attraction", "repair", "emergency", "other"];
@@ -194,7 +195,7 @@ function saveState() {
 }
 
 function cleanState(data) {
-  return {
+  const nextState = {
     ...structuredClone(sampleData),
     ...(data || {}),
     trip: { ...structuredClone(sampleData.trip), ...(data?.trip || {}) },
@@ -207,6 +208,35 @@ function cleanState(data) {
     checklist: Array.isArray(data?.checklist) ? data.checklist : structuredClone(sampleData.checklist),
     notes: typeof data?.notes === "string" ? data.notes : sampleData.notes,
   };
+  addMissingLocationsFromStops(nextState);
+  return nextState;
+}
+
+function addMissingLocationsFromStops(nextState) {
+  const knownNames = new Set(nextState.locations.map((location) => location.name.trim().toLowerCase()).filter(Boolean));
+  nextState.stops
+    .map((stop) => stop.area?.trim())
+    .filter(Boolean)
+    .forEach((area) => {
+      if (knownNames.has(area.toLowerCase())) return;
+      nextState.locations.push({
+        id: crypto.randomUUID(),
+        name: area,
+        type: "other",
+        region: "",
+        day: 1,
+        arrive: "",
+        depart: "",
+        reason: "Added from stops in this area.",
+        notes: "",
+      });
+      knownNames.add(area.toLowerCase());
+    });
+}
+
+function getLocationAttractions(location) {
+  const locationName = location.name.trim().toLowerCase();
+  return state.stops.filter((stop) => stop.category === "attraction" && stop.area?.trim().toLowerCase() === locationName);
 }
 
 function scheduleRemoteSave() {
@@ -395,18 +425,58 @@ function renderLocations() {
   const list = document.querySelector("#locationsList");
   const template = document.querySelector("#locationTemplate");
   list.innerHTML = "";
+  addMissingLocationsFromStops(state);
   state.locations.forEach((location) => {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".location-card");
+    const attractions = getLocationAttractions(location);
+    const isExpanded = expandedLocations.has(location.id);
+    const toggle = card.querySelector(".location-toggle");
+    const body = card.querySelector(".location-body");
+
+    card.querySelector(".location-name").textContent = location.name || "Unnamed location";
+    card.querySelector(".location-meta").textContent = `${attractions.length} attraction${attractions.length === 1 ? "" : "s"}`;
     card.querySelector(".location-type").textContent = location.type || "location";
     card.querySelector('[data-field="type"]').innerHTML = optionList(locationTypes, location.type);
+    body.hidden = !isExpanded;
+    toggle.setAttribute("aria-expanded", String(isExpanded));
+    toggle.addEventListener("click", () => {
+      if (expandedLocations.has(location.id)) {
+        expandedLocations.delete(location.id);
+      } else {
+        expandedLocations.add(location.id);
+      }
+      renderLocations();
+    });
     ["name", "type", "region", "day", "arrive", "depart", "reason", "notes"].forEach((field) => bindInput(card, location, field, render));
     card.querySelector(".delete-location").addEventListener("click", () => {
       state.locations = state.locations.filter((item) => item.id !== location.id);
       saveState();
       render();
     });
+    renderLocationAttractions(card.querySelector(".location-attractions"), attractions);
+    card.querySelector(".location-attraction-count").textContent = `${attractions.length} saved`;
     list.append(node);
+  });
+}
+
+function renderLocationAttractions(container, attractions) {
+  if (!attractions.length) {
+    container.innerHTML = `<p class="empty-message">No attractions saved for this location yet.</p>`;
+    return;
+  }
+
+  container.innerHTML = "";
+  attractions.forEach((stop) => {
+    const card = document.createElement("article");
+    card.className = "attraction-bento-card";
+    card.innerHTML = `
+      <label>Name<input data-field="name" type="text" /></label>
+      <label>Link<input data-field="link" type="url" /></label>
+      <label>Description<textarea data-field="notes"></textarea></label>
+    `;
+    ["name", "link", "notes"].forEach((field) => bindInput(card, stop, field, render));
+    container.append(card);
   });
 }
 

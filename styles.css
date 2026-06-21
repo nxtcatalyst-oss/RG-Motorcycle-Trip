@@ -336,6 +336,120 @@ textarea {
   border-left: 5px solid var(--blue);
 }
 
+.location-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.location-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.location-toggle {
+  display: grid;
+  gap: 4px;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  padding: 0;
+  text-align: left;
+}
+
+.location-toggle::before {
+  content: "Show";
+  width: max-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #edf4fb;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.location-toggle[aria-expanded="true"]::before {
+  content: "Hide";
+  background: #fff3ed;
+  color: var(--accent-dark);
+}
+
+.location-name {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.location-meta {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.location-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.location-body {
+  display: grid;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+  padding: 16px;
+  background: #fbfdff;
+}
+
+.location-body[hidden] {
+  display: none;
+}
+
+.location-edit-grid {
+  padding-bottom: 4px;
+}
+
+.location-attraction-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.location-attraction-head h4 {
+  margin: 0;
+  color: var(--navy);
+}
+
+.location-attraction-count,
+.empty-message {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.location-attractions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.attraction-bento-card {
+  display: grid;
+  gap: 10px;
+  min-height: 220px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(7, 29, 54, 0.08);
+}
+
+.attraction-bento-card textarea {
+  min-height: 92px;
+}
+
 .expense-card {
   border-left: 5px solid var(--gold);
 }
@@ -509,9 +623,16 @@ textarea {
   .topbar,
   .section-head,
   .panel-header,
-  .filter-row {
+  .filter-row,
+  .location-summary,
+  .location-attraction-head,
+  .location-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .location-summary {
+    display: flex;
   }
 
   .form-grid,
