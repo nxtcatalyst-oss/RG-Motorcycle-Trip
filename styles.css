@@ -379,6 +379,26 @@ textarea {
   gap: 14px;
 }
 
+.stops-list {
+  display: grid;
+  gap: 12px;
+}
+
+.simple-stop-card {
+  box-shadow: none;
+}
+
+.simple-stop-fields {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(240px, 1fr) minmax(320px, 1.4fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.simple-stop-fields textarea {
+  min-height: 68px;
+}
+
 .filter-row {
   justify-content: flex-start;
 }
@@ -499,6 +519,7 @@ textarea {
   .metric-grid,
   .budget-summary,
   .record-grid.two,
+  .simple-stop-fields,
   .check-item {
     grid-template-columns: 1fr;
   }

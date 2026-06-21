@@ -424,12 +424,7 @@ function renderStops() {
       const node = template.content.cloneNode(true);
       const card = node.querySelector(".stop-card");
       card.querySelector(".stop-category").textContent = stop.category;
-      card.querySelector('[data-field="category"]').innerHTML = optionList(stopCategories, stop.category);
-      card.querySelector('[data-field="priority"]').innerHTML = optionList(priorities, stop.priority);
-      card.querySelector('[data-field="status"]').innerHTML = optionList(statuses, stop.status);
-      ["name", "category", "area", "day", "priority", "status", "estimatedCost", "link", "notes"].forEach((field) =>
-        bindInput(card, stop, field, render),
-      );
+      ["name", "link", "notes"].forEach((field) => bindInput(card, stop, field, render));
       card.querySelector(".delete-stop").addEventListener("click", () => {
         state.stops = state.stops.filter((item) => item.id !== stop.id);
         saveState();
@@ -592,10 +587,11 @@ document.querySelector("#addRouteDay").addEventListener("click", () => {
 });
 
 document.querySelector("#addStop").addEventListener("click", () => {
+  const activeCategory = document.querySelector("#stopCategoryFilter").value;
   state.stops.push({
     id: crypto.randomUUID(),
     name: "New stop",
-    category: "other",
+    category: activeCategory === "all" ? "other" : activeCategory,
     area: "",
     day: 1,
     priority: "good option",

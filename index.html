@@ -131,7 +131,7 @@
             </select>
             <input id="stopSearch" type="search" placeholder="Search stops, towns, notes" />
           </div>
-          <div id="stopsList" class="card-grid"></div>
+          <div id="stopsList" class="stops-list"></div>
         </section>
 
         <section id="fuel" class="view" aria-labelledby="fuel-title">
@@ -223,21 +223,15 @@
     </template>
 
     <template id="stopTemplate">
-      <article class="record-card stop-card">
+      <article class="record-card stop-card simple-stop-card">
         <div class="record-actions">
           <span class="pill stop-category"></span>
           <button class="icon-btn delete-stop" type="button" aria-label="Delete stop">Delete</button>
         </div>
-        <div class="record-grid">
+        <div class="simple-stop-fields">
           <label>Name<input data-field="name" type="text" /></label>
-          <label>Category<select data-field="category"></select></label>
-          <label>Area or town<input data-field="area" type="text" /></label>
-          <label>Route day<input data-field="day" type="number" min="1" /></label>
-          <label>Priority<select data-field="priority"></select></label>
-          <label>Status<select data-field="status"></select></label>
-          <label>Estimated cost<input data-field="estimatedCost" type="number" min="0" step="0.01" /></label>
           <label>Link<input data-field="link" type="url" /></label>
-          <label class="full-span">Notes<textarea data-field="notes"></textarea></label>
+          <label>Description<textarea data-field="notes"></textarea></label>
         </div>
       </article>
     </template>
