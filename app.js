@@ -448,7 +448,7 @@ function renderLocations() {
       }
       renderLocations();
     });
-    ["name", "type", "region", "day", "arrive", "depart", "reason", "notes"].forEach((field) => bindInput(card, location, field, render));
+    ["name", "type", "reason"].forEach((field) => bindInput(card, location, field, render));
     card.querySelector(".delete-location").addEventListener("click", () => {
       state.locations = state.locations.filter((item) => item.id !== location.id);
       saveState();
