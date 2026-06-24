@@ -15,6 +15,11 @@ const priorities = ["must-see", "good option", "backup", "skip if tired"];
 const statuses = ["considering", "planned", "booked", "paid", "done", "skipped"];
 const checklistGroups = ["Packing", "Bike", "Documents"];
 const removedLocationLabels = new Set(["mountain pass", "highway junction", "friends town", "friends' town", "lake stopover"]);
+const removedLocationReplacements = new Map([
+  ["friends town", "Meet-up area"],
+  ["friends' town", "Meet-up area"],
+  ["lake stopover", "Scenic overnight"],
+]);
 
 const sampleData = {
   trip: {
@@ -140,12 +145,17 @@ function cleanState(data) {
     notes: typeof data?.notes === "string" ? data.notes : sampleData.notes,
   };
   removeDeletedLocationLabels(nextState);
+  replaceDeletedRouteLabels(nextState);
   addMissingLocationsFromStops(nextState);
   return nextState;
 }
 
+function normalizeLocationLabel(value) {
+  return String(value || "").trim().replaceAll("’", "'").toLowerCase();
+}
+
 function isRemovedLocationLabel(value) {
-  return removedLocationLabels.has(String(value || "").trim().toLowerCase());
+  return removedLocationLabels.has(normalizeLocationLabel(value));
 }
 
 function removeDeletedLocationLabels(nextState) {
@@ -153,11 +163,23 @@ function removeDeletedLocationLabels(nextState) {
   nextState.stops = nextState.stops.filter((stop) => !isRemovedLocationLabel(stop.area));
 }
 
+function replaceDeletedRouteLabels(nextState) {
+  nextState.routeDays = nextState.routeDays.map((day) => {
+    const startKey = normalizeLocationLabel(day.start);
+    const endKey = normalizeLocationLabel(day.end);
+    return {
+      ...day,
+      start: removedLocationReplacements.get(startKey) || day.start,
+      end: removedLocationReplacements.get(endKey) || day.end,
+    };
+  });
+}
+
 function addMissingLocationsFromStops(nextState) {
   const knownNames = new Set(nextState.locations.map((location) => location.name.trim().toLowerCase()).filter(Boolean));
   nextState.stops
     .map((stop) => stop.area?.trim())
-    .filter(Boolean)
+    .filter((area) => area && !isRemovedLocationLabel(area))
     .forEach((area) => {
       if (knownNames.has(area.toLowerCase())) return;
       nextState.locations.push({
