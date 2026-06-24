@@ -234,11 +234,17 @@ async function initSupabase() {
   remoteReady = true;
 
   if (data?.data) {
+    const remoteJson = JSON.stringify(data.data);
     state = cleanState(data.data);
+    const cleanJson = JSON.stringify(state);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    lastRemoteJson = JSON.stringify(cleanState(state));
+    lastRemoteJson = remoteJson;
     render();
-    saveStatus.textContent = "Loaded from Supabase";
+    if (cleanJson !== remoteJson) {
+      await saveRemoteState();
+    } else {
+      saveStatus.textContent = "Loaded from Supabase";
+    }
   } else {
     await saveRemoteState();
   }
@@ -391,7 +397,10 @@ function renderLocations() {
     });
     ["name", "type", "reason"].forEach((field) => bindInput(card, location, field, render));
     card.querySelector(".delete-location").addEventListener("click", () => {
+      const locationName = location.name.trim().toLowerCase();
       state.locations = state.locations.filter((item) => item.id !== location.id);
+      state.stops = state.stops.filter((stop) => stop.area?.trim().toLowerCase() !== locationName);
+      expandedLocations.delete(location.id);
       saveState();
       render();
     });
