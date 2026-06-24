@@ -14,6 +14,7 @@ const locationTypes = ["overnight", "fuel area", "meal town", "scenic area", "me
 const priorities = ["must-see", "good option", "backup", "skip if tired"];
 const statuses = ["considering", "planned", "booked", "paid", "done", "skipped"];
 const checklistGroups = ["Packing", "Bike", "Documents"];
+const removedLocationLabels = new Set(["mountain pass", "highway junction", "friends town", "friends' town", "lake stopover"]);
 
 const sampleData = {
   trip: {
@@ -30,7 +31,7 @@ const sampleData = {
       title: "Meet-up ride",
       date: "2026-07-10",
       start: "Home",
-      end: "Friends' town",
+      end: "Meet-up area",
       miles: 210,
       hours: 4.5,
       notes: "Keep this day relaxed so we arrive with energy to plan the next legs.",
@@ -39,86 +40,16 @@ const sampleData = {
       id: crypto.randomUUID(),
       title: "Scenic mountain loop",
       date: "2026-07-11",
-      start: "Friends' town",
-      end: "Lake stopover",
+      start: "Meet-up area",
+      end: "Scenic overnight",
       miles: 265,
       hours: 6,
       notes: "Prefer scenic roads. Avoid long gravel sections unless confirmed manageable.",
     },
   ],
   locations: [
-    {
-      id: crypto.randomUUID(),
-      name: "Friends' town",
-      type: "meet-up",
-      region: "",
-      day: 1,
-      arrive: "2026-07-10",
-      depart: "2026-07-11",
-      reason: "Meet up with the group and finalize route decisions.",
-      notes: "Use this as the starting planning base for the full ride.",
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Lake stopover",
-      type: "overnight",
-      region: "",
-      day: 2,
-      arrive: "2026-07-11",
-      depart: "2026-07-12",
-      reason: "Good overnight candidate after the scenic mountain loop.",
-      notes: "Research hotels with secure motorcycle parking and walkable dinner options.",
-    },
   ],
   stops: [
-    {
-      id: crypto.randomUUID(),
-      name: "Secure Parking Hotel",
-      category: "hotel",
-      area: "Lake stopover",
-      day: 2,
-      priority: "good option",
-      status: "considering",
-      estimatedCost: 220,
-      link: "",
-      notes: "Call to confirm motorcycle parking and cancellation deadline.",
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Breakfast Diner",
-      category: "restaurant",
-      area: "Friends' town",
-      day: 2,
-      priority: "backup",
-      status: "planned",
-      estimatedCost: 25,
-      link: "",
-      notes: "Good early breakfast option before leaving town.",
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Last fuel before pass",
-      category: "fuel",
-      area: "Highway junction",
-      day: 2,
-      priority: "must-see",
-      status: "planned",
-      estimatedCost: 0,
-      link: "",
-      notes: "Treat as mandatory fuel stop if the mountain route is selected.",
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Ridge viewpoint",
-      category: "attraction",
-      area: "Mountain pass",
-      day: 2,
-      priority: "must-see",
-      status: "planned",
-      estimatedCost: 0,
-      link: "",
-      notes: "Short photo stop. Budget 20 minutes.",
-    },
   ],
   bikes: [
     { id: crypto.randomUUID(), rider: "Brenden", bike: "Touring bike", tankGallons: 5.5, mpg: 42 },
@@ -176,11 +107,11 @@ const saveStatus = document.querySelector("#saveStatus");
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return structuredClone(sampleData);
+  if (!saved) return cleanState();
   try {
-    return { ...structuredClone(sampleData), ...JSON.parse(saved) };
+    return cleanState(JSON.parse(saved));
   } catch {
-    return structuredClone(sampleData);
+    return cleanState();
   }
 }
 
@@ -208,8 +139,18 @@ function cleanState(data) {
     checklist: Array.isArray(data?.checklist) ? data.checklist : structuredClone(sampleData.checklist),
     notes: typeof data?.notes === "string" ? data.notes : sampleData.notes,
   };
+  removeDeletedLocationLabels(nextState);
   addMissingLocationsFromStops(nextState);
   return nextState;
+}
+
+function isRemovedLocationLabel(value) {
+  return removedLocationLabels.has(String(value || "").trim().toLowerCase());
+}
+
+function removeDeletedLocationLabels(nextState) {
+  nextState.locations = nextState.locations.filter((location) => !isRemovedLocationLabel(location.name));
+  nextState.stops = nextState.stops.filter((stop) => !isRemovedLocationLabel(stop.area));
 }
 
 function addMissingLocationsFromStops(nextState) {
