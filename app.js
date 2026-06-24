@@ -403,9 +403,7 @@ function renderLocations() {
     const toggle = card.querySelector(".location-toggle");
     const body = card.querySelector(".location-body");
 
-    card.querySelector(".location-name").textContent = location.name || "Unnamed location";
-    card.querySelector(".location-meta").textContent = `${attractions.length} attraction${attractions.length === 1 ? "" : "s"}`;
-    card.querySelector(".location-type").textContent = location.type || "location";
+    updateLocationSummary(card, location, attractions);
     card.querySelector('[data-field="type"]').innerHTML = optionList(locationTypes, location.type);
     body.hidden = !isExpanded;
     toggle.setAttribute("aria-expanded", String(isExpanded));
@@ -417,7 +415,9 @@ function renderLocations() {
       }
       renderLocations();
     });
-    ["name", "type", "reason"].forEach((field) => bindInput(card, location, field, render));
+    ["name", "type", "reason"].forEach((field) =>
+      bindInput(card, location, field, () => updateLocationSummary(card, location, attractions)),
+    );
     card.querySelector(".delete-location").addEventListener("click", () => {
       const locationName = location.name.trim().toLowerCase();
       state.locations = state.locations.filter((item) => item.id !== location.id);
@@ -430,6 +430,12 @@ function renderLocations() {
     card.querySelector(".location-attraction-count").textContent = `${attractions.length} saved`;
     list.append(node);
   });
+}
+
+function updateLocationSummary(card, location, attractions) {
+  card.querySelector(".location-name").textContent = location.name || "Unnamed location";
+  card.querySelector(".location-meta").textContent = `${attractions.length} attraction${attractions.length === 1 ? "" : "s"}`;
+  card.querySelector(".location-type").textContent = location.type || "location";
 }
 
 function renderLocationAttractions(container, attractions) {
