@@ -305,7 +305,7 @@ function optionList(values, selected) {
   return values.map((value) => `<option value="${value}" ${value === selected ? "selected" : ""}>${value}</option>`).join("");
 }
 
-function bindInput(container, object, field, onChange = render) {
+function bindInput(container, object, field, onChange = () => {}) {
   const input = container.querySelector(`[data-field="${field}"]`);
   if (!input) return;
   input.value = object[field] ?? "";
@@ -336,7 +336,7 @@ function renderTripForm() {
   form.innerHTML = fields
     .map(([field, label]) => `<label>${label}<input data-field="${field}" type="text" /></label>`)
     .join("");
-  fields.forEach(([field]) => bindInput(form, state.trip, field, render));
+  fields.forEach(([field]) => bindInput(form, state.trip, field, renderBudgetSummary));
 }
 
 function renderMetrics() {
@@ -380,7 +380,12 @@ function renderRoute() {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".route-card");
     card.querySelector(".route-day-label").textContent = `Day ${index + 1}`;
-    ["title", "date", "start", "end", "miles", "hours", "notes"].forEach((field) => bindInput(card, day, field, render));
+    ["title", "date", "start", "end", "miles", "hours", "notes"].forEach((field) =>
+      bindInput(card, day, field, () => {
+        renderMetrics();
+        renderDashboardRoute();
+      }),
+    );
     card.querySelector(".delete-route").addEventListener("click", () => {
       state.routeDays = state.routeDays.filter((item) => item.id !== day.id);
       saveState();
@@ -453,7 +458,7 @@ function renderLocationAttractions(container, attractions) {
       <label>Link<input data-field="link" type="url" /></label>
       <label>Description<textarea data-field="notes"></textarea></label>
     `;
-    ["name", "link", "notes"].forEach((field) => bindInput(card, stop, field, render));
+    ["name", "link", "notes"].forEach((field) => bindInput(card, stop, field));
     container.append(card);
   });
 }
@@ -472,7 +477,7 @@ function renderStops() {
       const node = template.content.cloneNode(true);
       const card = node.querySelector(".stop-card");
       card.querySelector(".stop-category").textContent = stop.category;
-      ["name", "link", "notes"].forEach((field) => bindInput(card, stop, field, render));
+      ["name", "link", "notes"].forEach((field) => bindInput(card, stop, field));
       card.querySelector(".delete-stop").addEventListener("click", () => {
         state.stops = state.stops.filter((item) => item.id !== stop.id);
         saveState();
@@ -494,10 +499,10 @@ function renderBikes() {
   state.bikes.forEach((bike) => {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".mini-card");
-    ["rider", "bike", "tankGallons", "mpg"].forEach((field) => bindInput(card, bike, field, render));
     const range = document.createElement("div");
     range.className = "summary-row";
-    range.innerHTML = `<span>Range</span><strong>${number(Number(bike.tankGallons || 0) * Number(bike.mpg || 0))} miles</strong><span>planned</span>`;
+    updateBikeRange(range, bike);
+    ["rider", "bike", "tankGallons", "mpg"].forEach((field) => bindInput(card, bike, field, () => updateBikeRange(range, bike)));
     card.append(range);
     card.querySelector(".delete-bike").addEventListener("click", () => {
       state.bikes = state.bikes.filter((item) => item.id !== bike.id);
@@ -508,6 +513,10 @@ function renderBikes() {
   });
 }
 
+function updateBikeRange(range, bike) {
+  range.innerHTML = `<span>Range</span><strong>${number(Number(bike.tankGallons || 0) * Number(bike.mpg || 0))} miles</strong><span>planned</span>`;
+}
+
 function renderFuelLogs() {
   const list = document.querySelector("#fuelLogs");
   const template = document.querySelector("#fuelTemplate");
@@ -516,10 +525,16 @@ function renderFuelLogs() {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".mini-card");
     card.querySelector(".fuel-rider").textContent = log.rider || "Fuel";
-    ["date", "rider", "location", "gallons", "pricePerGallon", "odometer"].forEach((field) => bindInput(card, log, field, render));
     const total = document.createElement("div");
     total.className = "summary-row";
-    total.innerHTML = `<span>Total</span><strong>${money(Number(log.gallons || 0) * Number(log.pricePerGallon || 0))}</strong><span>${log.location || ""}</span>`;
+    updateFuelLogSummary(card, total, log);
+    ["date", "rider", "location", "gallons", "pricePerGallon", "odometer"].forEach((field) =>
+      bindInput(card, log, field, () => {
+        updateFuelLogSummary(card, total, log);
+        renderMetrics();
+        renderBudgetSummary();
+      }),
+    );
     card.append(total);
     card.querySelector(".delete-fuel").addEventListener("click", () => {
       state.fuelLogs = state.fuelLogs.filter((item) => item.id !== log.id);
@@ -530,8 +545,14 @@ function renderFuelLogs() {
   });
 }
 
-function renderBudget() {
+function updateFuelLogSummary(card, total, log) {
+  card.querySelector(".fuel-rider").textContent = log.rider || "Fuel";
+  total.innerHTML = `<span>Total</span><strong>${money(Number(log.gallons || 0) * Number(log.pricePerGallon || 0))}</strong><span>${log.location || ""}</span>`;
+}
+
+function renderBudgetSummary() {
   const summary = document.querySelector("#budgetSummary");
+  if (!summary) return;
   const estimated = state.expenses.reduce((sum, expense) => sum + Number(expense.estimated || 0), 0);
   const actual = state.expenses.reduce((sum, expense) => sum + Number(expense.actual || 0), 0);
   const fuel = state.fuelLogs.reduce((sum, log) => sum + Number(log.gallons || 0) * Number(log.pricePerGallon || 0), 0);
@@ -542,17 +563,26 @@ function renderBudget() {
     <div class="budget-row"><span>Fuel logged</span><strong>${money(fuel)}</strong></div>
     <div class="budget-row"><span>Per person actual</span><strong>${money((actual + fuel) / riders)}</strong></div>
   `;
+}
 
+function renderBudget() {
+  renderBudgetSummary();
   const list = document.querySelector("#expenseList");
   const template = document.querySelector("#expenseTemplate");
   list.innerHTML = "";
   state.expenses.forEach((expense) => {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".expense-card");
-    card.querySelector(".expense-category").textContent = expense.category;
+    updateExpenseSummary(card, expense);
     card.querySelector('[data-field="category"]').innerHTML = optionList(categories, expense.category);
     card.querySelector('[data-field="split"]').innerHTML = optionList(["group", "individual", "couples", "custom"], expense.split);
-    ["description", "category", "estimated", "actual", "paidBy", "split", "notes"].forEach((field) => bindInput(card, expense, field, render));
+    ["description", "category", "estimated", "actual", "paidBy", "split", "notes"].forEach((field) =>
+      bindInput(card, expense, field, () => {
+        updateExpenseSummary(card, expense);
+        renderMetrics();
+        renderBudgetSummary();
+      }),
+    );
     card.querySelector(".delete-expense").addEventListener("click", () => {
       state.expenses = state.expenses.filter((item) => item.id !== expense.id);
       saveState();
@@ -560,6 +590,10 @@ function renderBudget() {
     });
     list.append(node);
   });
+}
+
+function updateExpenseSummary(card, expense) {
+  card.querySelector(".expense-category").textContent = expense.category;
 }
 
 function renderChecklists() {
