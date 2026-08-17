@@ -1,4 +1,5 @@
 const STORAGE_KEY = "rideplan.v1";
+const BACKUP_META_KEY = "rideplan.backup-meta.v1";
 const config = window.RIDEPLAN_CONFIG || {};
 const tripSlug = config.tripSlug || "summer-2026";
 
@@ -6,6 +7,7 @@ let supabaseClient = null;
 let remoteReady = false;
 let saveTimer = null;
 let lastRemoteJson = "";
+let hasUnsyncedChanges = false;
 const expandedLocations = new Set();
 
 const categories = ["fuel", "lodging", "food", "attractions", "repairs", "tolls", "parking", "misc"];
@@ -157,8 +159,47 @@ function loadState() {
   }
 }
 
+function loadBackupMeta() {
+  try {
+    return JSON.parse(localStorage.getItem(BACKUP_META_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function updateBackupMeta(changes) {
+  const nextMeta = { ...loadBackupMeta(), ...changes };
+  localStorage.setItem(BACKUP_META_KEY, JSON.stringify(nextMeta));
+  renderBackupStatus();
+  return nextMeta;
+}
+
+function formatBackupTime(value) {
+  if (!value) return "Not yet";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not yet";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(date);
+}
+
+function renderBackupStatus() {
+  const meta = loadBackupMeta();
+  const localTime = document.querySelector("#lastLocalSave");
+  const remoteTime = document.querySelector("#lastSupabaseSync");
+  const snapshotTime = document.querySelector("#lastCloudSnapshot");
+  const health = document.querySelector("#backupHealth");
+  if (localTime) localTime.textContent = formatBackupTime(meta.lastLocalSave);
+  if (remoteTime) remoteTime.textContent = formatBackupTime(meta.lastSupabaseSync);
+  if (snapshotTime) snapshotTime.textContent = formatBackupTime(meta.lastCloudSnapshot);
+  if (health) {
+    health.textContent = hasUnsyncedChanges ? "Waiting to sync" : meta.lastSupabaseSync ? "Protected" : "Local only";
+    health.classList.toggle("warning", hasUnsyncedChanges || !meta.lastSupabaseSync);
+  }
+}
+
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  hasUnsyncedChanges = true;
+  updateBackupMeta({ lastLocalSave: new Date().toISOString() });
   if (!remoteReady) {
     saveStatus.textContent = "Saved locally";
     return;
@@ -329,7 +370,32 @@ async function saveRemoteState() {
   }
 
   lastRemoteJson = nextJson;
+  hasUnsyncedChanges = false;
+  updateBackupMeta({ lastSupabaseSync: new Date().toISOString() });
   saveStatus.textContent = "Synced with Supabase";
+  await createDailyCloudSnapshot(data);
+}
+
+async function createDailyCloudSnapshot(data) {
+  if (!supabaseClient) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const meta = loadBackupMeta();
+  if (meta.lastSnapshotDate === today) return;
+
+  const { error } = await supabaseClient.from("trip_document_snapshots").upsert(
+    {
+      trip_slug: tripSlug,
+      snapshot_date: today,
+      data,
+    },
+    { onConflict: "trip_slug,snapshot_date" },
+  );
+
+  if (error) {
+    console.warn("Cloud snapshots need the latest Supabase schema.", error);
+    return;
+  }
+  updateBackupMeta({ lastSnapshotDate: today, lastCloudSnapshot: new Date().toISOString() });
 }
 
 async function initSupabase() {
@@ -357,11 +423,13 @@ async function initSupabase() {
     const cleanJson = JSON.stringify(state);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     lastRemoteJson = remoteJson;
+    hasUnsyncedChanges = false;
     render();
     if (cleanJson !== remoteJson) {
       await saveRemoteState();
     } else {
       saveStatus.textContent = "Loaded from Supabase";
+      updateBackupMeta({ lastSupabaseSync: new Date().toISOString() });
     }
   } else {
     await saveRemoteState();
@@ -845,6 +913,7 @@ function render() {
   renderBudget();
   renderChecklists();
   renderNotes();
+  renderBackupStatus();
 }
 
 document.querySelectorAll(".nav-tab").forEach((button) => {
@@ -936,13 +1005,28 @@ document.querySelector("#notesField").addEventListener("input", (event) => {
   saveState();
 });
 
-document.querySelector("#exportData").addEventListener("click", () => {
+function exportBackup() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = `rideplan-backup-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(link.href);
+  updateBackupMeta({ lastDownloadedBackup: new Date().toISOString() });
+}
+
+document.querySelector("#exportData").addEventListener("click", exportBackup);
+document.querySelector("#backupNow").addEventListener("click", async () => {
+  const button = document.querySelector("#backupNow");
+  button.disabled = true;
+  button.textContent = "Backing up...";
+  if (remoteReady) await saveRemoteState();
+  exportBackup();
+  button.textContent = "Backup downloaded";
+  setTimeout(() => {
+    button.disabled = false;
+    button.textContent = "Back up now";
+  }, 1600);
 });
 
 document.querySelector("#importData").addEventListener("change", async (event) => {
@@ -958,6 +1042,12 @@ document.querySelector("#resetSample").addEventListener("click", () => {
   state = structuredClone(sampleData);
   saveState();
   render();
+});
+
+window.addEventListener("beforeunload", (event) => {
+  if (!hasUnsyncedChanges || !remoteReady) return;
+  event.preventDefault();
+  event.returnValue = "";
 });
 
 render();

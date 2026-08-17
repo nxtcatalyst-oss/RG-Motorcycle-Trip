@@ -78,6 +78,34 @@
             </section>
           </div>
 
+          <section class="panel backup-panel" aria-labelledby="backup-title">
+            <div class="panel-header backup-panel-header">
+              <div>
+                <p class="eyebrow">Data protection</p>
+                <h3 id="backup-title">Backup &amp; sync</h3>
+              </div>
+              <span id="backupHealth" class="backup-health">Local only</span>
+            </div>
+            <div class="backup-status-grid">
+              <div class="backup-status-item">
+                <span>Last browser save</span>
+                <strong id="lastLocalSave">Not yet</strong>
+              </div>
+              <div class="backup-status-item">
+                <span>Last Supabase sync</span>
+                <strong id="lastSupabaseSync">Not yet</strong>
+              </div>
+              <div class="backup-status-item">
+                <span>Latest cloud snapshot</span>
+                <strong id="lastCloudSnapshot">Not yet</strong>
+              </div>
+            </div>
+            <div class="backup-actions">
+              <p>Back up now syncs the current plan and downloads a dated JSON copy to this device.</p>
+              <button id="backupNow" class="primary-btn" type="button">Back up now</button>
+            </div>
+          </section>
+
           <section class="panel">
             <div class="panel-header">
               <div>
@@ -352,6 +380,6 @@
 
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=20260817-island-fuel-directory"></script>
+    <script src="app.js?v=20260817-backup-status"></script>
   </body>
 </html>
