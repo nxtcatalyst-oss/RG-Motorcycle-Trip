@@ -19,6 +19,7 @@
 
         <nav class="nav-tabs" aria-label="Planner sections">
           <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
+          <button class="nav-tab" data-view="calendar" type="button">Calendar</button>
           <button class="nav-tab" data-view="route" type="button">Route</button>
           <button class="nav-tab" data-view="locations" type="button">Locations</button>
           <button class="nav-tab" data-view="stops" type="button">Stops</button>
@@ -88,6 +89,16 @@
           </section>
         </section>
 
+        <section id="calendar" class="view" aria-labelledby="calendar-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">August 20-27</p>
+              <h3 id="calendar-title">Trip calendar</h3>
+            </div>
+          </div>
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </section>
+
         <section id="route" class="view" aria-labelledby="route-title">
           <div class="section-head">
             <div>
@@ -142,6 +153,30 @@
             </div>
             <button id="addFuelLog" class="primary-btn" type="button">Add fuel log</button>
           </div>
+          <section class="panel fuel-station-panel">
+            <div class="panel-header fuel-directory-header">
+              <div>
+                <p class="eyebrow">Vancouver Island reference</p>
+                <h3>Fuel stations by main route</h3>
+                <p class="directory-note">Curated for trip planning. Remote and seasonal hours can change—confirm before departure.</p>
+              </div>
+              <strong id="fuelStationCount" class="location-attraction-count"></strong>
+            </div>
+            <div class="filters fuel-directory-filters">
+              <select id="fuelCorridorFilter" aria-label="Filter fuel stations by highway">
+                <option value="all">All main routes</option>
+                <option value="Hwy 1">Highway 1</option>
+                <option value="Hwy 19/19A">Highways 19 / 19A</option>
+                <option value="Hwy 19">Highway 19 north</option>
+                <option value="Hwy 4">Highway 4</option>
+                <option value="Hwy 14">Highway 14</option>
+                <option value="Hwy 18 / Pacific Marine">Highway 18 / Pacific Marine</option>
+                <option value="Hwy 28">Highway 28</option>
+              </select>
+              <input id="fuelStationSearch" type="search" placeholder="Search station, town, or address" />
+            </div>
+            <div id="fuelStationList" class="fuel-station-grid"></div>
+          </section>
           <div class="split-layout">
             <section class="panel">
               <div class="panel-header">
@@ -215,6 +250,8 @@
           <label>Date<input data-field="date" type="date" /></label>
           <label>Start<input data-field="start" type="text" /></label>
           <label>End<input data-field="end" type="text" /></label>
+          <label>Staying in<input data-field="overnight" type="text" /></label>
+          <label>Lodging<input data-field="lodging" type="text" /></label>
           <label>Miles<input data-field="miles" type="number" min="0" /></label>
           <label>Ride hours<input data-field="hours" type="number" min="0" step="0.25" /></label>
           <label class="full-span">Road notes<textarea data-field="notes"></textarea></label>
@@ -315,6 +352,6 @@
 
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=20260624-global-input-focus-fix"></script>
+    <script src="app.js?v=20260817-island-fuel-directory"></script>
   </body>
 </html>

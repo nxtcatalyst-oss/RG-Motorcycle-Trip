@@ -21,10 +21,43 @@ const removedLocationReplacements = new Map([
   ["lake stopover", "Scenic overnight"],
 ]);
 
+const islandFuelStations = [
+  { corridor: "Hwy 1", community: "Langford", name: "Peninsula Co-op", address: "894 Goldstream Avenue", lat: 48.4506467, lon: -123.5051438, hours: "Verify before departure", note: "Convenient south-Island departure fuel." },
+  { corridor: "Hwy 1", community: "Malahat", name: "Malahat Gas", address: "231 Trans-Canada Highway", lat: 48.5429689, lon: -123.564839, hours: "Verify before departure", note: "Directly on the Malahat corridor." },
+  { corridor: "Hwy 1", community: "Mill Bay", name: "Peninsula Co-op", address: "805 Deloume Road", lat: 48.6527607, lon: -123.559366, hours: "Verify before departure", note: "Useful regrouping stop north of the Malahat." },
+  { corridor: "Hwy 1", community: "Duncan", name: "Peninsula Co-op", address: "281 Trans-Canada Highway", lat: 48.7765358, lon: -123.699236, hours: "Verify before departure", note: "On the main highway through Duncan." },
+  { corridor: "Hwy 1", community: "Chemainus", name: "Mid Island Co-op", address: "9355 Smiley Road", lat: 48.9075256, lon: -123.7294054, hours: "Verify before departure", note: "Near the Mt. Sicker/Chemainus junction." },
+  { corridor: "Hwy 1", community: "Ladysmith", name: "Ivy Green Husky", address: "12615 Trans-Canada Highway", lat: 49.0152945, lon: -123.8525941, hours: "Verify before departure", note: "Highway-side fuel south of Nanaimo." },
+  { corridor: "Hwy 1", community: "Nanaimo", name: "Petro-Canada", address: "1271 Trans-Canada Highway", lat: 49.130538, lon: -123.922648, hours: "Mapped as 24/7", note: "South Nanaimo anchor before choosing an Island route." },
+  { corridor: "Hwy 19/19A", community: "Nanoose Bay", name: "Petro-Canada", address: "2345 East Island Highway", lat: 49.264038, lon: -124.1998467, hours: "Mapped as 24/7", note: "Easy access along the old Island Highway." },
+  { corridor: "Hwy 19/19A", community: "Parksville", name: "Mid Island Co-op", address: "222 East Island Highway", lat: 49.3200992, lon: -124.307464, hours: "Verify before departure", note: "Central Parksville fuel near the waterfront route." },
+  { corridor: "Hwy 19/19A", community: "Qualicum Beach", name: "Petro-Canada", address: "655 Memorial Avenue", lat: 49.3477818, lon: -124.4418463, hours: "Verify before departure", note: "Useful before continuing on 19A or returning to 19." },
+  { corridor: "Hwy 19", community: "Horne Lake", name: "Petro-Canada", address: "700 Horne Lake Road", lat: 49.37071, lon: -124.6187, hours: "Verify before departure", note: "Highway 19 interchange fuel." },
+  { corridor: "Hwy 19/19A", community: "Buckley Bay", name: "Petro-Canada", address: "6856 South Island Highway", lat: 49.5252455, lon: -124.8490642, hours: "Verify before departure", note: "Fuel near the Denman Island ferry junction." },
+  { corridor: "Hwy 19/19A", community: "Courtenay", name: "Shell", address: "2591 Cliffe Avenue", lat: 49.6763347, lon: -124.98344, hours: "Verify before departure", note: "Central Comox Valley option on Highway 19A." },
+  { corridor: "Hwy 19/19A", community: "Campbell River", name: "Shell", address: "150 Brant Drive", lat: 50.0146725, lon: -125.2845482, hours: "Verify before departure", note: "Recommended full-tank point before remote north-Island legs." },
+  { corridor: "Hwy 19", community: "Sayward", name: "Mid Island Co-op", address: "1590 Sayward Road", lat: 50.3123366, lon: -125.9185445, hours: "Mapped 6:00 am–9:00 pm", note: "In Sayward village, off Highway 19; confirm hours." },
+  { corridor: "Hwy 19", community: "Woss", name: "Woss Service", address: "Woss, BC", lat: 50.2129554, lon: -126.594803, hours: "Mapped 7:00 am–10:00 pm; Sunday 8:00 am", note: "Critical north-Island fuel; confirm availability before relying on it." },
+  { corridor: "Hwy 19", community: "Port McNeill", name: "Petro-Canada", address: "1001 Hyde Creek Road", lat: 50.5718482, lon: -127.0108585, hours: "Verify before departure", note: "Major north-Island service town." },
+  { corridor: "Hwy 19", community: "Port Hardy", name: "Esso", address: "8945 Granville Street", lat: 50.7204, lon: -127.499342, hours: "Mapped as 24/7", note: "Northern terminus fuel anchor." },
+  { corridor: "Hwy 4", community: "Coombs", name: "Petro-Canada", address: "2484 Alberni Highway", lat: 49.3026957, lon: -124.435312, hours: "Verify before departure", note: "Fuel before crossing toward Port Alberni." },
+  { corridor: "Hwy 4", community: "Port Alberni", name: "Tseshaht Market", address: "7581 Pacific Rim Highway", lat: 49.2778476, lon: -124.8849104, hours: "Mapped 7:00 am–10:00 pm", note: "Last full-service fuel before the west-coast communities; fill here." },
+  { corridor: "Hwy 4", community: "Ucluelet", name: "Co-op Gas Bar", address: "2076 Peninsula Road", lat: 48.945801, lon: -125.563409, hours: "Mapped 6:00 am–10:00 pm", note: "West-coast anchor; last fuel on the Ucluelet branch." },
+  { corridor: "Hwy 4", community: "Tofino", name: "Co-op Gas Bar", address: "797 Campbell Street", lat: 49.1450191, lon: -125.891621, hours: "Mapped 6:00 am–11:00 pm", note: "Fuel in Tofino at the north end of Highway 4." },
+  { corridor: "Hwy 14", community: "Sooke", name: "Petro-Canada", address: "6692 Sooke Road", lat: 48.3777333, lon: -123.723672, hours: "Verify before departure", note: "Fill here before the remote coastal run to Port Renfrew." },
+  { corridor: "Hwy 14", community: "Port Renfrew", name: "Pacheedaht Pit Stop", address: "16947 Parkinson Road", lat: 48.5579248, lon: -124.3987915, hours: "Limited and variable; call 250-647-0127", note: "Only local option; regular, diesel and propane. Do not arrive near closing on fumes." },
+  { corridor: "Hwy 18 / Pacific Marine", community: "Lake Cowichan", name: "Tipton's Gas Bar", address: "14 North Shore Road", lat: 48.8280002, lon: -124.0538974, hours: "Verify before departure", note: "Primary fuel anchor for the Pacific Marine Circle Route." },
+  { corridor: "Hwy 18 / Pacific Marine", community: "Youbou", name: "Daly's Auto Centre", address: "10514 Youbou Road", lat: 48.87372, lon: -124.205761, hours: "Verify before departure", note: "Secondary option west of Lake Cowichan; do not rely on it without calling." },
+  { corridor: "Hwy 28", community: "Campbell River", name: "Petro-Canada", address: "465 Merecroft Road", lat: 49.9997088, lon: -125.246924, hours: "Verify before departure", note: "Fill before heading west; no dependable fuel along Highway 28." },
+  { corridor: "Hwy 28", community: "Gold River", name: "Shell", address: "500 Muchalat Drive", lat: 49.7815215, lon: -126.0478658, hours: "Mapped 7:00 am–10:00 pm", note: "Western Highway 28 fuel anchor; confirm hours on remote travel days." },
+];
+
 const sampleData = {
   trip: {
     name: "Summer Motorcycle Trip",
-    dates: "July 2026",
+    dates: "August 20-27, 2026",
+    startDate: "2026-08-20",
+    endDate: "2026-08-27",
     riders: "Brenden, wife, friend 1, friend 2",
     start: "Home",
     destination: "Friend's place and beyond",
@@ -34,9 +67,11 @@ const sampleData = {
     {
       id: crypto.randomUUID(),
       title: "Meet-up ride",
-      date: "2026-07-10",
+      date: "2026-08-20",
       start: "Home",
-      end: "Meet-up area",
+      end: "TBD",
+      overnight: "TBD",
+      lodging: "",
       miles: 210,
       hours: 4.5,
       notes: "Keep this day relaxed so we arrive with energy to plan the next legs.",
@@ -44,9 +79,11 @@ const sampleData = {
     {
       id: crypto.randomUUID(),
       title: "Scenic mountain loop",
-      date: "2026-07-11",
-      start: "Meet-up area",
-      end: "Scenic overnight",
+      date: "2026-08-21",
+      start: "TBD",
+      end: "TBD",
+      overnight: "TBD",
+      lodging: "",
       miles: 265,
       hours: 6,
       notes: "Prefer scenic roads. Avoid long gravel sections unless confirmed manageable.",
@@ -146,8 +183,67 @@ function cleanState(data) {
   };
   removeDeletedLocationLabels(nextState);
   replaceDeletedRouteLabels(nextState);
+  ensureCalendarDays(nextState);
   addMissingLocationsFromStops(nextState);
   return nextState;
+}
+
+function parseDateInput(value) {
+  if (!value) return null;
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDateInput(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getCalendarDateRange() {
+  const start = parseDateInput(state.trip.startDate) || parseDateInput("2026-08-20");
+  const end = parseDateInput(state.trip.endDate) || parseDateInput("2026-08-27");
+  if (end < start) return [];
+
+  const dates = [];
+  const current = new Date(start);
+  while (current <= end) {
+    dates.push(formatDateInput(current));
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+function ensureCalendarDays(nextState) {
+  const start = parseDateInput(nextState.trip.startDate) || parseDateInput("2026-08-20");
+  const end = parseDateInput(nextState.trip.endDate) || parseDateInput("2026-08-27");
+  if (end < start) return;
+
+  const knownDates = new Set(nextState.routeDays.map((day) => day.date).filter(Boolean));
+  const current = new Date(start);
+  while (current <= end) {
+    const date = formatDateInput(current);
+    if (!knownDates.has(date)) {
+      nextState.routeDays.push({
+        id: crypto.randomUUID(),
+        title: "Open planning day",
+        date,
+        start: "",
+        end: "",
+        overnight: "",
+        lodging: "",
+        miles: 0,
+        hours: 0,
+        notes: "",
+      });
+      knownDates.add(date);
+    }
+    current.setDate(current.getDate() + 1);
+  }
+}
+
+function formatCalendarDate(value) {
+  const date = parseDateInput(value);
+  if (!date) return "Date TBD";
+  return new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" }).format(date);
 }
 
 function normalizeLocationLabel(value) {
@@ -325,18 +421,30 @@ function setView(viewId) {
 
 function renderTripForm() {
   const fields = [
-    ["name", "Trip name"],
-    ["dates", "Dates"],
-    ["riders", "Riders"],
-    ["start", "Start"],
-    ["destination", "Destination"],
-    ["planningStatus", "Planning status"],
+    ["name", "Trip name", "text"],
+    ["dates", "Dates", "text"],
+    ["startDate", "First day away", "date"],
+    ["endDate", "Last day away", "date"],
+    ["riders", "Riders", "text"],
+    ["start", "Start", "text"],
+    ["destination", "Destination", "text"],
+    ["planningStatus", "Planning status", "text"],
   ];
   const form = document.querySelector("#tripForm");
   form.innerHTML = fields
-    .map(([field, label]) => `<label>${label}<input data-field="${field}" type="text" /></label>`)
+    .map(([field, label, type]) => `<label>${label}<input data-field="${field}" type="${type}" /></label>`)
     .join("");
-  fields.forEach(([field]) => bindInput(form, state.trip, field, renderBudgetSummary));
+  fields.forEach(([field]) =>
+    bindInput(form, state.trip, field, () => {
+      if (field === "startDate" || field === "endDate") {
+        ensureCalendarDays(state);
+        saveState();
+        renderCalendar();
+        renderRoute();
+      }
+      renderBudgetSummary();
+    }),
+  );
 }
 
 function renderMetrics() {
@@ -372,6 +480,48 @@ function renderDashboardRoute() {
     .join("");
 }
 
+function getRouteDayByDate(date) {
+  return state.routeDays.find((day) => day.date === date);
+}
+
+function renderCalendar() {
+  const grid = document.querySelector("#calendarGrid");
+  if (!grid) return;
+
+  ensureCalendarDays(state);
+  grid.innerHTML = "";
+
+  getCalendarDateRange().forEach((date, index) => {
+    const day = getRouteDayByDate(date);
+    if (!day) return;
+
+    const card = document.createElement("article");
+    card.className = "calendar-day-card";
+    card.innerHTML = `
+      <div class="calendar-day-head">
+        <span class="pill">Day ${index + 1}</span>
+        <strong>${formatCalendarDate(date)}</strong>
+      </div>
+      <div class="calendar-fields">
+        <label>Plan title<input data-field="title" type="text" /></label>
+        <label>Staying in<input data-field="overnight" type="text" /></label>
+        <label>Lodging<input data-field="lodging" type="text" /></label>
+        <label>Miles<input data-field="miles" type="number" min="0" /></label>
+        <label class="full-span">Notes<textarea data-field="notes"></textarea></label>
+      </div>
+    `;
+
+    ["title", "overnight", "lodging", "miles", "notes"].forEach((field) =>
+      bindInput(card, day, field, () => {
+        renderMetrics();
+        renderDashboardRoute();
+        renderRoute();
+      }),
+    );
+    grid.append(card);
+  });
+}
+
 function renderRoute() {
   const list = document.querySelector("#routeList");
   const template = document.querySelector("#routeTemplate");
@@ -380,10 +530,11 @@ function renderRoute() {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".route-card");
     card.querySelector(".route-day-label").textContent = `Day ${index + 1}`;
-    ["title", "date", "start", "end", "miles", "hours", "notes"].forEach((field) =>
+    ["title", "date", "start", "end", "overnight", "lodging", "miles", "hours", "notes"].forEach((field) =>
       bindInput(card, day, field, () => {
         renderMetrics();
         renderDashboardRoute();
+        renderCalendar();
       }),
     );
     card.querySelector(".delete-route").addEventListener("click", () => {
@@ -488,8 +639,45 @@ function renderStops() {
 }
 
 function renderFuel() {
+  renderFuelStations();
   renderBikes();
   renderFuelLogs();
+}
+
+function renderFuelStations() {
+  const list = document.querySelector("#fuelStationList");
+  const corridorFilter = document.querySelector("#fuelCorridorFilter");
+  const searchInput = document.querySelector("#fuelStationSearch");
+  if (!list || !corridorFilter || !searchInput) return;
+
+  const corridor = corridorFilter.value;
+  const query = searchInput.value.trim().toLowerCase();
+  const matches = islandFuelStations.filter((station) => {
+    const matchesCorridor = corridor === "all" || station.corridor === corridor;
+    const haystack = `${station.name} ${station.community} ${station.address} ${station.note}`.toLowerCase();
+    return matchesCorridor && haystack.includes(query);
+  });
+
+  list.innerHTML = matches
+    .map(
+      (station) => `
+        <article class="fuel-station-card">
+          <div class="fuel-station-head">
+            <div>
+              <span class="pill">${station.corridor}</span>
+              <h4>${station.community} · ${station.name}</h4>
+            </div>
+            <a class="secondary-btn map-link" href="https://www.google.com/maps/search/?api=1&amp;query=${station.lat},${station.lon}" target="_blank" rel="noreferrer">Map</a>
+          </div>
+          <p class="station-address">${station.address}</p>
+          <p>${station.note}</p>
+          <p class="station-hours">${station.hours}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  document.querySelector("#fuelStationCount").textContent = `${matches.length} station${matches.length === 1 ? "" : "s"}`;
 }
 
 function renderBikes() {
@@ -649,6 +837,7 @@ function render() {
   renderTripForm();
   renderMetrics();
   renderDashboardRoute();
+  renderCalendar();
   renderRoute();
   renderLocations();
   renderStops();
@@ -663,7 +852,18 @@ document.querySelectorAll(".nav-tab").forEach((button) => {
 });
 
 document.querySelector("#addRouteDay").addEventListener("click", () => {
-  state.routeDays.push({ id: crypto.randomUUID(), title: "New route day", date: "", start: "", end: "", miles: 0, hours: 0, notes: "" });
+  state.routeDays.push({
+    id: crypto.randomUUID(),
+    title: "New route day",
+    date: "",
+    start: "",
+    end: "",
+    overnight: "",
+    lodging: "",
+    miles: 0,
+    hours: 0,
+    notes: "",
+  });
   saveState();
   render();
 });
@@ -728,6 +928,8 @@ document.querySelector("#addChecklistItem").addEventListener("click", () => {
 
 document.querySelector("#stopCategoryFilter").addEventListener("change", renderStops);
 document.querySelector("#stopSearch").addEventListener("input", renderStops);
+document.querySelector("#fuelCorridorFilter").addEventListener("change", renderFuelStations);
+document.querySelector("#fuelStationSearch").addEventListener("input", renderFuelStations);
 
 document.querySelector("#notesField").addEventListener("input", (event) => {
   state.notes = event.target.value;
