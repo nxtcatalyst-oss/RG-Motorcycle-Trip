@@ -59,6 +59,8 @@ For the current static GitHub Pages deployment, `config.js` contains the Supabas
 
 Run `supabase/schema.sql` in the Supabase SQL editor before expecting shared sync to work. Until then, the app will continue saving locally.
 
+Re-run the schema after pulling releases that add database features. The backup dashboard uses the `trip_document_snapshots` table to keep one recoverable cloud snapshot per trip per day. Live `trip_documents` syncing and downloaded JSON backups continue working if the snapshot table has not been installed yet.
+
 The app currently syncs the working trip plan through `trip_documents`, a single JSON document table. The normalized tables below are included for the next data-model pass after the trip planning workflow stabilizes.
 
 Suggested first tables:

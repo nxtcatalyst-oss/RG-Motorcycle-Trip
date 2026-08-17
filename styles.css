@@ -140,6 +140,73 @@ button {
   gap: 10px;
 }
 
+.backup-panel {
+  margin-bottom: 18px;
+  border-top: 5px solid var(--green);
+}
+
+.backup-panel-header {
+  align-items: start;
+}
+
+.backup-health {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: #e4f3ed;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.backup-health.warning {
+  background: #fff1df;
+  color: #9b4f0d;
+}
+
+.backup-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.backup-status-item {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.backup-status-item span,
+.backup-actions p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.backup-status-item strong {
+  color: var(--navy);
+}
+
+.backup-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.backup-actions p {
+  margin: 0;
+}
+
+.backup-actions button {
+  flex: 0 0 auto;
+}
+
 #importData {
   display: none;
 }
@@ -493,6 +560,111 @@ textarea {
   gap: 14px;
 }
 
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 14px;
+}
+
+.calendar-day-card {
+  display: grid;
+  gap: 14px;
+  min-height: 360px;
+  padding: 16px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-top: 5px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.calendar-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.calendar-day-head strong {
+  color: var(--navy);
+  font-size: 20px;
+}
+
+.calendar-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.calendar-fields textarea {
+  min-height: 88px;
+}
+
+.fuel-station-panel {
+  margin-bottom: 18px;
+}
+
+.fuel-directory-header {
+  align-items: start;
+}
+
+.directory-note {
+  max-width: 720px;
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.fuel-directory-filters {
+  margin-bottom: 14px;
+}
+
+.fuel-station-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.fuel-station-card {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--gold);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.fuel-station-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fuel-station-head h4 {
+  margin: 8px 0 0;
+  color: var(--navy);
+  font-size: 18px;
+}
+
+.fuel-station-card p {
+  margin: 0;
+}
+
+.station-address,
+.station-hours {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.map-link {
+  min-height: 34px;
+  padding: 7px 11px;
+  text-decoration: none;
+}
+
 .stops-list {
   display: grid;
   gap: 12px;
@@ -640,9 +812,17 @@ textarea {
   .metric-grid,
   .budget-summary,
   .record-grid.two,
+  .backup-status-grid,
+  .calendar-grid,
+  .calendar-fields,
   .simple-stop-fields,
   .check-item {
     grid-template-columns: 1fr;
+  }
+
+  .backup-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .topbar h2 {

@@ -7,6 +7,15 @@ create table if not exists public.trip_documents (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.trip_document_snapshots (
+  id uuid primary key default gen_random_uuid(),
+  trip_slug text not null,
+  snapshot_date date not null,
+  data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  unique (trip_slug, snapshot_date)
+);
+
 create table if not exists public.trips (
   id uuid primary key default gen_random_uuid(),
   name text not null default 'Summer Motorcycle Trip',
@@ -165,6 +174,7 @@ before update on public.trip_documents
 for each row execute function public.touch_updated_at();
 
 alter table public.trip_documents enable row level security;
+alter table public.trip_document_snapshots enable row level security;
 alter table public.trips enable row level security;
 alter table public.route_days enable row level security;
 alter table public.stops enable row level security;
@@ -177,6 +187,12 @@ alter table public.notes enable row level security;
 drop policy if exists "Public trip document planning access" on public.trip_documents;
 create policy "Public trip document planning access"
 on public.trip_documents for all
+using (true)
+with check (true);
+
+drop policy if exists "Public trip snapshot planning access" on public.trip_document_snapshots;
+create policy "Public trip snapshot planning access"
+on public.trip_document_snapshots for all
 using (true)
 with check (true);
 
